@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Recovery Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+    <!-- Company ID Setup Modal -->
+    <div id="setupModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                </div>
+                <h2 class="text-2xl font-bold text-slate-900 mb-2">Welcome to SwiftConnect!</h2>
+                <p class="text-slate-600">Let's connect your Whop account</p>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">
+                        Your Whop Company ID
+                    </label>
+                    <input 
+                        type="text" 
+                        id="companyIdInput"
+                        placeholder="biz_XXXXXXXXXXXXX"
+                        class="w-full px-4 py-3 border-2 border-slate-300 rounded-lg focus:border-blue-500 focus:outline-none text-slate-900"
+                    />
+                    <p class="text-xs text-slate-500 mt-2">
+                        Find it at: <span class="font-mono bg-slate-100 px-1 py-0.5 rounded">whop.com/hub/biz_XXXXX</span>
+                    </p>
+                </div>
+
+                <button 
+                    id="saveCompanyIdBtn"
+                    class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                >
+                    Connect Dashboard
+                </button>
+
+                <button 
+                    id="useDemoBtn"
+                    class="w-full bg-purple-50 text-purple-700 py-3 rounded-lg font-semibold hover:bg-purple-100 transition-colors border-2 border-purple-200"
+                >
+                    Try Demo Mode First
+                </button>
+            </div>
+
+            <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+                <p class="text-sm text-blue-800">
+                    <strong>💡 How to find your Company ID:</strong><br>
+                    1. Go to whop.com/hub<br>
+                    2. Look at the URL<br>
+                    3. Copy everything after /hub/<br>
+                    4. It starts with "biz_"
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div id="app" class="p-6 max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="mb-8 flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-slate-900 mb-2">Payment Recovery Dashboard</h1>
+                <p class="text-slate-600">Monitor and recover failed payments in real-time</p>
+                <p id="companyDisplay" class="text-sm text-slate-500 mt-1"></p>
+            </div>
+            <div class="flex items-center gap-3">
+                <!-- Settings Button -->
+                <button 
+                    id="settingsBtn"
+                    class="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors"
+                    title="Change Company ID"
+                >
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                </button>
+
+                <!-- Demo Mode Toggle -->
+                <label class="flex items-center gap-2 px-4 py-2 bg-purple-50 text-purple-700 rounded-lg border-2 border-purple-200 cursor-pointer hover:bg-purple-100 transition-colors">
+                    <input type="checkbox" id="demoToggle" class="w-4 h-4 text-purple-600 rounded">
+                    <span class="font-medium">Demo Mode</span>
+                </label>
+                
+                <button 
+                    id="syncBtn"
+                    class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                    <svg id="syncIcon" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    <span id="syncText">Sync Payments</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading" class="flex items-center justify-center py-12">
+            <div class="text-center">
+                <svg class="h-12 w-12 text-blue-500 animate-spin mx-auto mb-4" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <p class="text-slate-600">Loading failed payments...</p>
+            </div>
+        </div>
+
+        <!-- Alert Banner -->
+        <div id="alert" class="hidden bg-amber-50 border-l-4 border-amber-500 p-4 mb-6 rounded-r-lg">
+            <div class="flex items-center">
+                <svg class="h-5 w-5 text-amber-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <div>
+                    <p id="alertText" class="text-amber-800 font-medium"></p>
+                    <p id="alertSubtext" class="text-amber-700 text-sm"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Metrics Cards -->
+        <div id="metrics" class="hidden grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-slate-600 text-sm font-medium">Revenue at Risk</span>
+                    <svg class="h-5 w-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div id="totalAtRisk" class="text-3xl font-bold text-slate-900">$0.00</div>
+                <div id="customersCount" class="text-sm text-slate-500 mt-1">From 0 failed payments</div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-slate-600 text-sm font-medium">Customers at Risk</span>
+                    <svg class="h-5 w-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                </div>
+                <div id="customersAtRisk" class="text-3xl font-bold text-slate-900">0</div>
+                <div class="text-sm text-slate-500 mt-1">Active past due memberships</div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-200">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-slate-600 text-sm font-medium">Avg. Retry Attempts</span>
+                    <svg class="h-5 w-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                    </svg>
+                </div>
+                <div id="avgAttempts" class="text-3xl font-bold text-slate-900">0.0</div>
+                <div class="text-sm text-slate-500 mt-1">Before cancellation (max 5)</div>
+            </div>
+        </div>
+
+        <!-- Failed Payments Table -->
+        <div id="paymentsTable" class="hidden bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-200">
+                <h2 class="text-lg font-semibold text-slate-900">Failed Payments</h2>
+                <p class="text-sm text-slate-600 mt-1">Take action before customers churn</p>
+            </div>
+            <div id="paymentsContent"></div>
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="hidden bg-white rounded-xl shadow-sm border border-slate-200 p-12 text-center">
+            <svg class="h-12 w-12 text-green-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p class="text-slate-600 font-medium">No failed payments right now</p>
+            <p class="text-sm text-slate-500 mt-1">Your revenue is safe! 🎉</p>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_URL = 'https://merry-simplicity-production.up.railway.app';
+        const STORAGE_KEY = 'swiftconnect_company_id';
+
+        // Demo Data
+        const DEMO_PAYMENTS = [
+            {
+                paymentId: 'demo_1',
+                user: { name: 'Alex Martinez', email: '[email protected]' },
+                amount: 197.00,
+                product: 'Elite Trading Signals',
+                membershipId: 'mem_vip_2891',
+                failedAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
+                attempts: 1,
+                cardLast4: '4532'
+            },
+            {
+                paymentId: 'demo_2',
+                user: { name: 'Jordan Smith', email: '[email protected]' },
+                amount: 147.00,
+                product: 'Premium Community Access',
+                membershipId: 'mem_pro_1847',
+                failedAt: new Date(Date.now() - 6 * 60 * 60 * 1000),
+                attempts: 2,
+                cardLast4: '8901'
+            },
+            {
+                paymentId: 'demo_3',
+                user: { name: 'Taylor Johnson', email: '[email protected]' },
+                amount: 297.00,
+                product: 'Mastermind Annual',
+                membershipId: 'mem_elite_3092',
+                failedAt: new Date(Date.now() - 18 * 60 * 60 * 1000),
+                attempts: 3,
+                cardLast4: '2468'
+            },
+            {
+                paymentId: 'demo_4',
+                user: { name: 'Casey Williams', email: '[email protected]' },
+                amount: 97.00,
+                product: 'Course Bundle',
+                membershipId: 'mem_std_4521',
+                failedAt: new Date(Date.now() - 4 * 60 * 60 * 1000),
+                attempts: 1,
+                cardLast4: '7531'
+            },
+            {
+                paymentId: 'demo_5',
+                user: { name: 'Morgan Davis', email: '[email protected]' },
+                amount: 67.00,
+                product: 'Monthly Membership',
+                membershipId: 'mem_bas_8473',
+                failedAt: new Date(Date.now() - 12 * 60 * 60 * 1000),
+                attempts: 2,
+                cardLast4: '3698'
+            },
+            {
+                paymentId: 'demo_6',
+                user: { name: 'Riley Anderson', email: '[email protected]' },
+                amount: 497.00,
+                product: 'VIP Lifetime Access',
+                membershipId: 'mem_vip_9182',
+                failedAt: new Date(Date.now() - 1 * 60 * 60 * 1000),
+                attempts: 1,
+                cardLast4: '1597'
+            },
+            {
+                paymentId: 'demo_7',
+                user: { name: 'Jamie Thompson', email: '[email protected]' },
+                amount: 127.00,
+                product: 'Advanced Training',
+                membershipId: 'mem_adv_6284',
+                failedAt: new Date(Date.now() - 22 * 60 * 60 * 1000),
+                attempts: 4,
+                cardLast4: '9512'
+            }
+        ];
+
+        // State
+        let companyId = localStorage.getItem(STORAGE_KEY);
+        let isDemoMode = false;
+        let payments = [];
+
+        // Initialize
+        window.addEventListener('DOMContentLoaded', () => {
+            if (!companyId) {
+                showSetupModal();
+            } else {
+                updateCompanyDisplay();
+                loadPayments();
+            }
+        });
+
+        // Setup Modal Functions
+        function showSetupModal() {
+            document.getElementById('setupModal').classList.remove('hidden');
+        }
+
+        function hideSetupModal() {
+            document.getElementById('setupModal').classList.add('hidden');
+        }
+
+        function updateCompanyDisplay() {
+            const display = document.getElementById('companyDisplay');
+            if (companyId && !isDemoMode) {
+                display.textContent = `Connected: ${companyId}`;
+            } else if (isDemoMode) {
+                display.textContent = 'Demo Mode - Sample Data';
+            } else {
+                display.textContent = '';
+            }
+        }
+
+        // Event Listeners
+        document.getElementById('saveCompanyIdBtn').addEventListener('click', () => {
+            const input = document.getElementById('companyIdInput');
+            const id = input.value.trim();
+            
+            if (!id) {
+                alert('Please enter your Company ID');
+                return;
+            }
+            
+            if (!id.startsWith('biz_')) {
+                alert('Company ID should start with "biz_"');
+                return;
+            }
+            
+            companyId = id;
+            localStorage.setItem(STORAGE_KEY, id);
+            hideSetupModal();
+            updateCompanyDisplay();
+            loadPayments();
+        });
+
+        document.getElementById('useDemoBtn').addEventListener('click', () => {
+            hideSetupModal();
+            isDemoMode = true;
+            document.getElementById('demoToggle').checked = true;
+            updateCompanyDisplay();
+            loadPayments();
+        });
+
+        document.getElementById('settingsBtn').addEventListener('click', () => {
+            showSetupModal();
+            document.getElementById('companyIdInput').value = companyId || '';
+        });
+
+        document.getElementById('demoToggle').addEventListener('change', function(e) {
+            isDemoMode = e.target.checked;
+            updateCompanyDisplay();
+            loadPayments();
+        });
+
+        document.getElementById('syncBtn').addEventListener('click', syncPayments);
+
+        // Utility Functions
+        function formatTimeAgo(dateString) {
+            const date = new Date(dateString);
+            const hours = Math.floor((Date.now() - date) / (1000 * 60 * 60));
+            if (hours < 1) return 'Just now';
+            if (hours === 1) return '1 hour ago';
+            if (hours < 24) return `${hours} hours ago`;
+            const days = Math.floor(hours / 24);
+            return days === 1 ? '1 day ago' : `${days} days ago`;
+        }
+
+        function getUrgencyColor(attempts) {
+            if (attempts >= 3) return 'text-red-600 bg-red-50';
+            if (attempts >= 2) return 'text-orange-600 bg-orange-50';
+            return 'text-yellow-600 bg-yellow-50';
+        }
+
+        function copyEmail(email) {
+            navigator.clipboard.writeText(email);
+            alert('Email copied: ' + email);
+        }
+
+        // API Functions
+        async function fetchPayments() {
+            if (isDemoMode) {
+                return {
+                    payments: DEMO_PAYMENTS,
+                    metrics: {
+                        totalAtRisk: '1,429.00',
+                        customersAtRisk: 7,
+                        avgAttempts: '2.0'
+                    }
+                };
+            }
+
+            if (!companyId) {
+                return { payments: [], metrics: { totalAtRisk: '0.00', customersAtRisk: 0, avgAttempts: '0.0' } };
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/api/failed-payments?companyId=${companyId}`);
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Error fetching payments:', error);
+                return { payments: [], metrics: { totalAtRisk: '0.00', customersAtRisk: 0, avgAttempts: '0.0' } };
+            }
+        }
+
+        async function syncPayments() {
+            if (isDemoMode) {
+                alert('Demo mode is active. Enter your real Company ID to sync actual payments.');
+                return;
+            }
+
+            if (!companyId) {
+                alert('Please set up your Company ID first.');
+                showSetupModal();
+                return;
+            }
+
+            const syncBtn = document.getElementById('syncBtn');
+            const syncText = document.getElementById('syncText');
+            const syncIcon = document.getElementById('syncIcon');
+            
+            syncBtn.disabled = true;
+            syncText.textContent = 'Syncing...';
+            syncIcon.classList.add('animate-spin');
+
+            try {
+                const response = await fetch(`${API_URL}/api/sync-payments`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ companyId })
+                });
+                
+                const data = await response.json();
+                console.log('Sync complete:', data);
+                
+                await loadPayments();
+            } catch (error) {
+                console.error('Sync error:', error);
+                alert('Sync failed. Check console for details.');
+            } finally {
+                syncBtn.disabled = false;
+                syncText.textContent = 'Sync Payments';
+                syncIcon.classList.remove('animate-spin');
+            }
+        }
+
+        // Render Functions
+        function renderMetrics(metrics) {
+            document.getElementById('totalAtRisk').textContent = `$${metrics.totalAtRisk}`;
+            document.getElementById('customersCount').textContent = `From ${metrics.customersAtRisk} failed payments`;
+            document.getElementById('customersAtRisk').textContent = metrics.customersAtRisk;
+            document.getElementById('avgAttempts').textContent = metrics.avgAttempts;
+        }
+
+        function renderAlert(count, total) {
+            const alert = document.getElementById('alert');
+            const alertText = document.getElementById('alertText');
+            const alertSubtext = document.getElementById('alertSubtext');
+            
+            if (count > 0) {
+                alert.classList.remove('hidden');
+                alertText.textContent = `${count} payments need attention`;
+                alertSubtext.textContent = `$${total} in revenue at risk`;
+            } else {
+                alert.classList.add('hidden');
+            }
+        }
+
+        function renderPayments(payments) {
+            const content = document.getElementById('paymentsContent');
+            
+            if (payments.length === 0) {
+                document.getElementById('paymentsTable').classList.add('hidden');
+                document.getElementById('emptyState').classList.remove('hidden');
+                return;
+            }
+
+            document.getElementById('paymentsTable').classList.remove('hidden');
+            document.getElementById('emptyState').classList.add('hidden');
+
+            const html = `
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-slate-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase">Customer</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase">Product</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase">Amount</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase">Failed</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase">Attempts</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-slate-600 uppercase">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200">
+                            ${payments.map(payment => `
+                                <tr class="hover:bg-slate-50 transition-colors">
+                                    <td class="px-6 py-4">
+                                        <div class="font-medium text-slate-900">${payment.user.name}</div>
+                                        <div class="flex items-center gap-2 mt-1">
+                                            <span class="text-sm text-slate-600">${payment.user.email}</span>
+                                            <button onclick="copyEmail('${payment.user.email}')" class="text-slate-400 hover:text-slate-600">
+                                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="text-sm text-slate-900">${payment.product}</div>
+                                        <div class="text-xs text-slate-500">${payment.membershipId}</div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <span class="font-semibold text-slate-900">$${payment.amount}</span>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <span class="text-sm text-slate-600">${formatTimeAgo(payment.failedAt)}</span>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getUrgencyColor(payment.attempts)}">
+                                            ${payment.attempts} / 5
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <a href="mailto:${payment.user.email}?subject=Update your payment method&body=Hi ${payment.user.name},%0D%0A%0D%0AYour recent payment for ${payment.product} failed. Please update your payment method to continue your access." 
+                                           class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                            </svg>
+                                            Contact
+                                        </a>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            content.innerHTML = html;
+        }
+
+        // Main Load Function
+        async function loadPayments() {
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('metrics').classList.add('hidden');
+            
+            const data = await fetchPayments();
+            
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('metrics').classList.remove('hidden');
+            
+            payments = data.payments || [];
+            const metrics = data.metrics || { totalAtRisk: '0.00', customersAtRisk: 0, avgAttempts: '0.0' };
+            
+            renderMetrics
